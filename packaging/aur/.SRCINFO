@@ -18,6 +18,6 @@ pkgbase = hybridkey
 	depends = systemd-libs
 	options = !lto
 	source = hybridkey-0.1.0.tar.gz::https://github.com/drago20013/hybridkey/archive/refs/tags/v0.1.0.tar.gz
-	sha256sums = SKIP
+	sha256sums = 1b4989866bf1626d3604a72e80d3ff4093b014f4238c57b18651158867a23cc3
 
 pkgname = hybridkey
