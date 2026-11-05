@@ -11,7 +11,7 @@ makedepends=('cargo')
 install=hybridkey.install
 options=('!lto')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('1b4989866bf1626d3604a72e80d3ff4093b014f4238c57b18651158867a23cc3')
+sha256sums=('604f200388e178098293c72dab25d77f4d6ee7642ca782c3397c4591a3e4f818')
 
 prepare() {
   cd "$pkgname-$pkgver"

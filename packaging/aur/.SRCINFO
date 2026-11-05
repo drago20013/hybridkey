@@ -1,6 +1,6 @@
 pkgbase = hybridkey
 	pkgdesc = Use your phone's passkeys (Microsoft Authenticator, Google, iCloud) in any browser via a virtual FIDO2 key
-	pkgver = 0.1.0
+	pkgver = 0.1.1
 	pkgrel = 1
 	url = https://github.com/drago20013/hybridkey
 	install = hybridkey.install
@@ -17,7 +17,7 @@ pkgbase = hybridkey
 	depends = gtk4
 	depends = systemd-libs
 	options = !lto
-	source = hybridkey-0.1.0.tar.gz::https://github.com/drago20013/hybridkey/archive/refs/tags/v0.1.0.tar.gz
-	sha256sums = 1b4989866bf1626d3604a72e80d3ff4093b014f4238c57b18651158867a23cc3
+	source = hybridkey-0.1.1.tar.gz::https://github.com/drago20013/hybridkey/archive/refs/tags/v0.1.1.tar.gz
+	sha256sums = 604f200388e178098293c72dab25d77f4d6ee7642ca782c3397c4591a3e4f818
 
 pkgname = hybridkey
