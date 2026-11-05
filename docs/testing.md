@@ -71,3 +71,6 @@ Fill in the results, including phone model, OS version and provider.
 | 2026-10-23 | Relay (`hybridkey-uhidd --listen`, unprivileged test run): device created for uid 1000 with `HID_UNIQ=hybridkey-1000`, libfido2 getInfo through the relay | pass |
 | 2026-10-23 | Relay refuses a second device for the same uid; malformed packet closes the connection and removes the device; daemon exit removes the device | pass |
 | 2026-10-23 | `systemd-analyze verify` on the relay socket/service and the user service | pass |
+| 2026-11-05 | P5 Firefox register on webauthn.io → iPhone + iCloud Keychain: Apple tunnel (`cable.auth.com`) and handshake succeed, then the phone closes the tunnel ~0.7 s after the makeCredential request without answering; Firefox reports NotAllowedError | **fail** |
+| 2026-11-05 | Cause: Firefox omits `rp.name` and `user.displayName` and sends the `hmac-secret` extension (not in our getInfo; the iPhone lists only `largeBlob`, `prf`). makeCredential is now normalised to Chromium's shape (names filled in, `hmac-secret` dropped) | fixed |
+| 2026-11-05 | After the fix, Firefox on webauthn.io: register + sign-in with username → Android (`cable.ua5v.com`), register + sign-in with username (allow list of 10) → iPhone + iCloud Keychain (`cable.auth.com`) | **pass** |

@@ -162,12 +162,47 @@ impl Request {
     }
 
     /// Rewrites the request into the form Chromium sends, which is what phones'
-    /// hybrid authenticators are tested against: `up: true` is the default and
-    /// Chromium only ever sends `up: false`. Firefox sends it explicitly.
+    /// hybrid authenticators are tested against.
     pub fn normalize_for_phone(&mut self) {
-        if self.command != command::GET_ASSERTION {
-            return;
+        match self.command {
+            command::GET_ASSERTION => self.normalize_get_assertion(),
+            command::MAKE_CREDENTIAL => self.normalize_make_credential(),
+            _ => {}
         }
+    }
+
+    /// iCloud Keychain rejects Firefox's makeCredential (it closes the tunnel
+    /// without answering). Firefox omits `rp.name` and `user.displayName`, which
+    /// Chromium always sends, and adds `hmac-secret` even though our getInfo
+    /// lists no extensions.
+    fn normalize_make_credential(&mut self) {
+        if let Some(Value::Map(rp)) = self.get_mut(0x02) {
+            if map_entry(rp, "name").is_none() {
+                if let Some(id) = map_entry(rp, "id").cloned() {
+                    rp.push((text("name"), id));
+                    sort_text_keys(rp);
+                }
+            }
+        }
+        if let Some(Value::Map(user)) = self.get_mut(0x03) {
+            if map_entry(user, "displayName").is_none() {
+                let name = map_entry(user, "name").cloned().unwrap_or(text(""));
+                user.push((text("displayName"), name));
+                sort_text_keys(user);
+            }
+        }
+        if let Some(Value::Map(extensions)) = self.get_mut(0x06) {
+            extensions.retain(|(k, _)| k.as_text() != Some("hmac-secret"));
+            if extensions.is_empty() {
+                self.entries
+                    .retain(|(k, _)| k.as_integer() != Some(0x06.into()));
+            }
+        }
+    }
+
+    /// `up: true` is the default and Chromium only ever sends `up: false`.
+    /// Firefox sends it explicitly.
+    fn normalize_get_assertion(&mut self) {
         let Some(Value::Map(options)) = self.get_mut(0x05) else {
             return;
         };
@@ -198,7 +233,19 @@ impl Request {
                         })
                         .collect::<Vec<_>>()
                         .join(","),
-                    Value::Map(entries) => format!("{{{}}}", entries.len()),
+                    // Field names only (rp, user, extensions), never values.
+                    Value::Map(entries) => format!(
+                        "{{{}}}",
+                        entries
+                            .iter()
+                            .map(|(k, _)| match k {
+                                Value::Text(t) => t.clone(),
+                                Value::Integer(i) => i128::from(*i).to_string(),
+                                _ => "?".into(),
+                            })
+                            .collect::<Vec<_>>()
+                            .join(",")
+                    ),
                     Value::Bytes(b) => format!("b{}", b.len()),
                     Value::Text(_) => "text".into(),
                     _ => "?".into(),
@@ -254,6 +301,23 @@ fn map_get<'a>(value: &'a Value, key: &str) -> Option<&'a Value> {
             .map(|(_, v)| v),
         _ => None,
     }
+}
+
+fn map_entry<'a>(entries: &'a [(Value, Value)], key: &str) -> Option<&'a Value> {
+    entries
+        .iter()
+        .find(|(k, _)| k.as_text() == Some(key))
+        .map(|(_, v)| v)
+}
+
+/// CTAP2 canonical order for text keys: shorter first, then bytewise.
+fn sort_text_keys(entries: &mut [(Value, Value)]) {
+    entries.sort_by(|(a, _), (b, _)| {
+        let (a, b) = (a.as_text().unwrap_or(""), b.as_text().unwrap_or(""));
+        a.len()
+            .cmp(&b.len())
+            .then_with(|| a.as_bytes().cmp(b.as_bytes()))
+    });
 }
 
 fn cmp_int_keys(a: &Value, b: &Value) -> std::cmp::Ordering {
@@ -329,6 +393,55 @@ pub(crate) mod tests {
         )
         .unwrap();
         assert!(!req.is_silent_probe());
+    }
+
+    #[test]
+    fn normalize_make_credential_matches_chromium() {
+        let firefox = Value::Map(vec![
+            (int(1), Value::Bytes(vec![0xbb; 32])),
+            (int(2), Value::Map(vec![(text("id"), text("rp.test"))])),
+            (
+                int(3),
+                Value::Map(vec![
+                    (text("id"), Value::Bytes(vec![1])),
+                    (text("name"), text("alice")),
+                ]),
+            ),
+            (int(4), Value::Array(vec![])),
+            (
+                int(6),
+                Value::Map(vec![(text("hmac-secret"), Value::Bool(true))]),
+            ),
+            (int(7), Value::Map(vec![(text("rk"), Value::Bool(true))])),
+        ]);
+        let mut cbor = Vec::new();
+        ciborium::into_writer(&firefox, &mut cbor).unwrap();
+        let mut req = Request::parse(command::MAKE_CREDENTIAL, &cbor).unwrap();
+        req.normalize_for_phone();
+        assert_eq!(
+            req.summary(),
+            "1:b32 2:{id,name} 3:{id,name,displayName} 4:[0] 7:rk=true"
+        );
+        assert_eq!(
+            map_get(req.get(0x02).unwrap(), "name").unwrap().as_text(),
+            Some("rp.test")
+        );
+        assert_eq!(
+            map_get(req.get(0x03).unwrap(), "displayName")
+                .unwrap()
+                .as_text(),
+            Some("alice")
+        );
+
+        // Fields that are already there are kept, other extensions too.
+        let mut req = Request::parse(command::MAKE_CREDENTIAL, &req.encode()).unwrap();
+        req.entries
+            .push((int(6), Value::Map(vec![(text("credProtect"), int(2))])));
+        req.normalize_for_phone();
+        assert_eq!(
+            req.summary(),
+            "1:b32 2:{id,name} 3:{id,name,displayName} 4:[0] 7:rk=true 6:{credProtect}"
+        );
     }
 
     #[test]

@@ -1487,7 +1487,7 @@ checksum = "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87"
 
 [[package]]
 name = "hybridkey-qr"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-channel",
  "gtk4",
@@ -1496,14 +1496,14 @@ dependencies = [
 
 [[package]]
 name = "hybridkey-uhid"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "libc",
 ]
 
 [[package]]
 name = "hybridkey-uhidd"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "hybridkey-uhid",
  "libc",
@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "hybridkeyd"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",

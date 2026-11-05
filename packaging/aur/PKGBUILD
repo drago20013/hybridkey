@@ -1,6 +1,6 @@
 # Maintainer: Mike Smaluch smaluchmichal at gmail dot com
 pkgname=hybridkey
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Use your phone's passkeys (Microsoft Authenticator, Google, iCloud) in any browser via a virtual FIDO2 key"
 arch=('x86_64' 'aarch64')

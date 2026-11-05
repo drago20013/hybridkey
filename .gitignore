@@ -2,3 +2,7 @@
 /packaging/arch/src
 /packaging/arch/pkg
 /packaging/arch/*.pkg.tar.*
+/packaging/aur/*.tar.gz
+/packaging/aur/src
+/packaging/aur/pkg
+/packaging/aur/*.pkg.tar.*

@@ -4,7 +4,7 @@ members = ["crates/hybridkeyd", "crates/hybridkey-qr", "crates/hybridkey-uhid", 
 default-members = ["crates/hybridkeyd"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "LGPL-2.1-or-later"
 rust-version = "1.88"
