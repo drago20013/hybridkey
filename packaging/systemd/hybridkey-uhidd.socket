@@ -1,0 +1,13 @@
+[Unit]
+Description=hybridkey virtual FIDO key relay socket
+Documentation=file:///usr/share/doc/hybridkey/security.md
+
+[Socket]
+ListenSequentialPacket=/run/hybridkey-uhidd.sock
+SocketUser=root
+SocketGroup=hybridkey
+SocketMode=0660
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

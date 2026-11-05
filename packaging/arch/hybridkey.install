@@ -1,0 +1,20 @@
+post_install() {
+  modprobe uhid 2>/dev/null || true
+  echo ">>> To use hybridkey:"
+  echo ">>>   sudo systemctl enable --now hybridkey-uhidd.socket"
+  echo ">>>   sudo usermod -aG hybridkey <user>    # then log out and back in"
+  echo ">>>   hybridkey-toggle on                  # as that user"
+}
+
+post_upgrade() {
+  systemctl try-restart hybridkey-uhidd.service 2>/dev/null || true
+}
+
+pre_remove() {
+  systemctl disable --now hybridkey-uhidd.socket hybridkey-uhidd.service 2>/dev/null || true
+}
+
+post_remove() {
+  echo ">>> Run 'systemctl --user disable hybridkey.service' for each user that enabled it."
+  echo ">>> The 'hybridkey' group is left in place; remove it with 'groupdel hybridkey'."
+}

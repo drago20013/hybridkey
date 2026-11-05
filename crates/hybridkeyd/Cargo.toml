@@ -1,0 +1,27 @@
+[package]
+name = "hybridkeyd"
+description = "Virtual FIDO2 security key that forwards WebAuthn requests to your phone over the hybrid (caBLE) transport"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+ciborium = "0.2.2"
+clap = { version = "4", features = ["derive"] }
+hybridkey-uhid = { path = "../hybridkey-uhid" }
+libc = "0.2"
+# Pinned to master for the caBLE Shutdown fix (linux-credentials/libwebauthn#310);
+# switch back to a crates.io release once one includes it.
+libwebauthn = { git = "https://github.com/linux-credentials/libwebauthn", rev = "9c0e5f78ac445d35dca05170efbb0afefc5a89ae" }
+qrcode = { version = "0.14", default-features = false }
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+thiserror = "2"
+tokio = { version = "1.45", features = ["rt-multi-thread", "macros", "net", "io-util", "process", "signal", "sync", "time"] }
+tokio-util = "0.7"
+toml = "0.9"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

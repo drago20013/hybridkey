@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# hybridkey-toggle: turn the phone passkey bridge on or off for this user.
+# Usage: hybridkey-toggle [toggle|on|off|status]
+
+set -euo pipefail
+
+UNIT=hybridkey.service
+RELAY_SOCKET=/run/hybridkey-uhidd.sock
+
+notify() {
+  if command -v omarchy-notification-send >/dev/null; then
+    omarchy-notification-send "$1"
+  elif command -v notify-send >/dev/null; then
+    notify-send -a hybridkey "$1"
+  fi
+  echo "$1"
+}
+
+enabled() {
+  systemctl --user is-enabled --quiet "$UNIT" 2>/dev/null
+}
+
+on() {
+  if [[ ! -S $RELAY_SOCKET ]]; then
+    echo "The relay socket $RELAY_SOCKET does not exist." >&2
+    echo "Enable it once: sudo systemctl enable --now hybridkey-uhidd.socket" >&2
+    exit 1
+  fi
+  if [[ ! -w $RELAY_SOCKET ]]; then
+    # getent reads the group database; id -nG only shows this session's groups.
+    if getent group hybridkey | cut -d: -f4 | tr ',' '\n' | grep -qx "$(id -un)"; then
+      echo "You are in the hybridkey group but this session predates it: log out and back in." >&2
+    else
+      echo "$(id -un) is not in the hybridkey group: sudo usermod -aG hybridkey $(id -un)" >&2
+      echo "Then log out and back in." >&2
+    fi
+    exit 1
+  fi
+  systemctl --user enable --now "$UNIT"
+  notify "Phone passkeys enabled"
+}
+
+off() {
+  systemctl --user disable --now "$UNIT"
+  notify "Phone passkeys disabled"
+}
+
+case "${1:-toggle}" in
+  toggle) if enabled; then off; else on; fi ;;
+  on) on ;;
+  off) off ;;
+  status)
+    if enabled; then echo "enabled"; else echo "disabled"; fi
+    systemctl --user is-active "$UNIT" || true
+    ;;
+  *)
+    echo "Usage: hybridkey-toggle [toggle|on|off|status]" >&2
+    exit 1
+    ;;
+esac

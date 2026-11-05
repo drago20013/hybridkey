@@ -1,0 +1,39 @@
+[Unit]
+Description=hybridkey virtual FIDO key relay
+Documentation=file:///usr/share/doc/hybridkey/security.md
+Requires=hybridkey-uhidd.socket
+
+[Service]
+Type=exec
+ExecStart=@BINDIR@/hybridkey-uhidd
+
+# Root only for DAC access to /dev/uhid (root:root 0600). No capabilities,
+# no network, read-only system, and only that one device node.
+CapabilityBoundingSet=
+AmbientCapabilities=
+NoNewPrivileges=yes
+DevicePolicy=closed
+DeviceAllow=/dev/uhid rw
+PrivateNetwork=yes
+IPAddressDeny=any
+RestrictAddressFamilies=AF_UNIX
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectProc=invisible
+ProcSubset=pid
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+UMask=0077

@@ -1,0 +1,11 @@
+[package]
+name = "hybridkey-uhidd"
+description = "Privileged relay that creates hybridkey's virtual FIDO device on behalf of the session user"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+hybridkey-uhid = { path = "../hybridkey-uhid" }
+libc = "0.2"

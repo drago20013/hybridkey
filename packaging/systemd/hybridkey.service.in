@@ -1,0 +1,27 @@
+[Unit]
+Description=hybridkey: use your phone's passkeys as a security key
+Documentation=file:///usr/share/doc/hybridkey/README.md
+PartOf=graphical-session.target
+After=graphical-session.target bluetooth.target
+
+[Service]
+Type=exec
+ExecStart=@BINDIR@/hybridkeyd run
+Restart=on-failure
+RestartSec=3s
+
+# Hardening that works in the user manager. hybridkeyd needs the relay socket,
+# BlueZ on the system bus, outbound HTTPS to the caBLE tunnel server, and
+# to start the QR helper on the Wayland display.
+NoNewPrivileges=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+# AF_BLUETOOTH: CTAP 2.3 direct BLE channel (hybrid.transports = "cloud-or-local").
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_BLUETOOTH AF_NETLINK
+UMask=0077
+
+[Install]
+WantedBy=graphical-session.target

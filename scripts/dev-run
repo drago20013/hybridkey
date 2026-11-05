@@ -1,0 +1,31 @@
+#!/bin/bash
+# Rebuild and (re)start hybridkeyd from the checkout, in the background, with
+# debug logs. Usage: scripts/dev-run [extra config lines...]
+#   scripts/dev-run                               # defaults
+#   scripts/dev-run 'forward_allow_list = false'  # extra [ctap] settings
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+state="${XDG_RUNTIME_DIR:-/tmp}/hybridkey-dev"
+mkdir -p "$state"
+
+cargo build --quiet --workspace --manifest-path "$root/Cargo.toml"
+
+{
+  echo '[ui]'
+  echo "command = [\"$root/target/debug/hybridkey-qr\"]"
+  echo '[ctap]'
+  for line in "$@"; do echo "$line"; done
+} > "$state/config.toml"
+
+pkill -x hybridkeyd 2>/dev/null && sleep 0.5 || true
+HYBRIDKEY_LOG="${HYBRIDKEY_LOG:-debug}" setsid "$root/target/debug/hybridkeyd" \
+  --config "$state/config.toml" run > "$state/daemon.log" 2>&1 < /dev/null &
+sleep 1
+if pgrep -x hybridkeyd > /dev/null; then
+  echo "hybridkeyd running; log: $state/daemon.log"
+else
+  echo "hybridkeyd failed to start:" >&2
+  cat "$state/daemon.log" >&2
+  exit 1
+fi

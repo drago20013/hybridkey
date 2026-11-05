@@ -1,0 +1,40 @@
+# Maintainer: hybridkey contributors
+#
+# Builds this checkout, for local testing. The AUR package is in packaging/aur.
+pkgname=hybridkey
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Use your phone's passkeys (Microsoft Authenticator, Google, iCloud) in any browser via a virtual FIDO2 key"
+arch=('x86_64' 'aarch64')
+license=('LGPL-2.1-or-later')
+depends=('bluez' 'cairo' 'dbus' 'gcc-libs' 'glib2' 'glibc' 'gtk4' 'systemd-libs')
+makedepends=('cargo')
+install=hybridkey.install
+options=('!lto')
+
+_srcroot="$(realpath "$startdir/../..")"
+
+prepare() {
+  cd "$_srcroot"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$_srcroot"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo build --frozen --release --workspace
+}
+
+check() {
+  cd "$_srcroot"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo test --frozen --workspace
+}
+
+package() {
+  cd "$_srcroot"
+  make install DESTDIR="$pkgdir" PREFIX=/usr TARGET="$srcdir/target/release"
+}

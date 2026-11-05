@@ -1,0 +1,40 @@
+# hybridkey configuration: ~/.config/hybridkey/config.toml
+# Every setting is optional; the values below are the defaults.
+
+[device]
+# "relay": ask the hybridkey-uhidd system service to create the key (needs the
+# hybridkey group). "direct": open /dev/uhid yourself (development only; needs
+# write access to it, which gives your user the power to create any HID device).
+mode = "relay"
+relay_socket = "/run/hybridkey-uhidd.sock"
+# Direct mode only; the relay always uses its own fixed values.
+uhid_path = "/dev/uhid"
+name = "hybridkey phone passkey bridge"
+# pid.codes test IDs. Do not ship these in a distribution package.
+vendor_id = 0x1209
+product_id = 0x0001
+
+[hybrid]
+# From showing the QR code to the phone's answer.
+timeout_secs = 180
+# "cloud": caBLE v2 via the tunnel server (works with all current phones).
+# "cloud-or-local": also offer the CTAP 2.3 direct BLE channel.
+transports = "cloud"
+
+[ui]
+# "command": run the helper below (GTK window). "terminal": print the QR to the log.
+presenter = "command"
+command = ["hybridkey-qr"]
+
+[ctap]
+# How to answer the browser's silent credential probes (Firefox "pre-flight").
+# "optimistic": claim a match and send the phone the full credential list.
+# "deny": say "no credentials"; only usernameless (discoverable) sign-in works.
+silent_probes = "optimistic"
+# Send the site's credential list to the phone on sign-in. Set to false to let
+# the phone offer all of its passkeys for the site instead.
+forward_allow_list = true
+# Programs (executable names) with their own "use a phone" support. Requests
+# from them are ignored so you only see their QR code, not two. Use [] to
+# serve every program.
+defer_to = ["chrome", "chromium", "brave", "msedge", "vivaldi-bin", "opera"]

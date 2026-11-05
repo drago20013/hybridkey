@@ -1,0 +1,10 @@
+[package]
+name = "hybridkey-uhid"
+description = "Creates hybridkey's virtual FIDO HID device via /dev/uhid, and the relay wire protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+libc = "0.2"

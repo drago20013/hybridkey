@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = ["crates/hybridkeyd", "crates/hybridkey-qr", "crates/hybridkey-uhid", "crates/hybridkey-uhidd"]
+default-members = ["crates/hybridkeyd"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "LGPL-2.1-or-later"
+rust-version = "1.88"
+
+[profile.release]
+lto = "thin"
+strip = true
